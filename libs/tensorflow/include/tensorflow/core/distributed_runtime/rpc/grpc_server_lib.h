@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef THIRD_PARTY_TENSORFLOW_CORE_DISTRIBUTED_RUNTIME_RPC_GRPC_SERVER_LIB_H_
-#define THIRD_PARTY_TENSORFLOW_CORE_DISTRIBUTED_RUNTIME_RPC_GRPC_SERVER_LIB_H_
+#ifndef TENSORFLOW_CORE_DISTRIBUTED_RUNTIME_RPC_GRPC_SERVER_LIB_H_
+#define TENSORFLOW_CORE_DISTRIBUTED_RUNTIME_RPC_GRPC_SERVER_LIB_H_
 
 #include <memory>
 
@@ -22,6 +22,7 @@ limitations under the License.
 #include "grpc++/security/credentials.h"
 
 #include "tensorflow/core/common_runtime/process_util.h"
+#include "tensorflow/core/common_runtime/stats_publisher_interface.h"
 #include "tensorflow/core/distributed_runtime/master_env.h"
 #include "tensorflow/core/distributed_runtime/rpc/async_service_interface.h"
 #include "tensorflow/core/distributed_runtime/rpc/grpc_channel.h"
@@ -45,6 +46,10 @@ typedef std::function<RendezvousMgrInterface*(const WorkerEnv*)>
 typedef std::function<void(const WorkerEnv*, ::grpc::ServerBuilder*)>
     ServiceInitFunction;
 
+// function that creates a grpc based worker implementation.
+typedef std::function<std::unique_ptr<GrpcWorker>(WorkerEnv*)>
+    WorkerCreationFunction;
+
 class GrpcServer : public ServerInterface {
  protected:
   GrpcServer(const ServerDef& server_def, Env* env);
@@ -64,6 +69,15 @@ class GrpcServer : public ServerInterface {
   const string target() const override;
 
  protected:
+  Status Init(ServiceInitFunction service_func,
+              const RendezvousMgrCreationFunction& rendezvous_mgr_func,
+              const WorkerCreationFunction& worker_func,
+              const StatsPublisherFactory& stats_factory);
+
+  Status Init(ServiceInitFunction service_func,
+              const RendezvousMgrCreationFunction& rendezvous_mgr_func,
+              const WorkerCreationFunction& worker_func);
+
   Status Init(ServiceInitFunction service_func,
               const RendezvousMgrCreationFunction& rendezvous_mgr_func);
 
@@ -133,4 +147,4 @@ class GrpcServer : public ServerInterface {
 
 }  // namespace tensorflow
 
-#endif  // THIRD_PARTY_TENSORFLOW_CORE_DISTRIBUTED_RUNTIME_RPC_GRPC_SERVER_LIB_H_
+#endif  // TENSORFLOW_CORE_DISTRIBUTED_RUNTIME_RPC_GRPC_SERVER_LIB_H_

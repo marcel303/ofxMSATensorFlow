@@ -76,6 +76,14 @@ struct hash<StringPiece> {
     return static_cast<size_t>(Hash64(sp.data(), sp.size()));
   }
 };
+using StringPieceHasher = ::tensorflow::hash<StringPiece>;
+
+template <typename T, typename U>
+struct hash<std::pair<T, U>> {
+  size_t operator()(const std::pair<T, U>& p) const {
+    return Hash64Combine(hash<T>()(p.first), hash<U>()(p.second));
+  }
+};
 
 }  // namespace tensorflow
 

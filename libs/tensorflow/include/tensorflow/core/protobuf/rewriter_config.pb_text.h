@@ -19,6 +19,14 @@ bool ProtoParseFromString(
     ::tensorflow::AutoParallelOptions* msg)
         TF_MUST_USE_RESULT;
 
+// Enum text output for tensorflow.RewriterConfig.Toggle
+const char* EnumName_RewriterConfig_Toggle(
+    ::tensorflow::RewriterConfig_Toggle value);
+
+// Enum text output for tensorflow.RewriterConfig.NumIterationsType
+const char* EnumName_RewriterConfig_NumIterationsType(
+    ::tensorflow::RewriterConfig_NumIterationsType value);
+
 // Enum text output for tensorflow.RewriterConfig.MemOptType
 const char* EnumName_RewriterConfig_MemOptType(
     ::tensorflow::RewriterConfig_MemOptType value);

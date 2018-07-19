@@ -22,7 +22,6 @@ limitations under the License.
 #include <unordered_map>
 
 #include "tensorflow/core/framework/common_shape_fns.h"
-#include "tensorflow/core/framework/graph.pb.h"  // TODO(b/62899350): Remove
 #include "tensorflow/core/framework/op_kernel.h"
 #include "tensorflow/core/framework/resource_handle.h"
 #include "tensorflow/core/framework/tensor.h"
@@ -320,14 +319,13 @@ class IsResourceInitialized : public OpKernel {
 // specified type. The type will be a part of the generated op name.
 // TODO(apassos): figure out how to get non-cpu-allocated tensors to work
 // through constant folding so this doesn't have to be marked as stateful.
-#define REGISTER_RESOURCE_HANDLE_OP(Type)                   \
-  REGISTER_OP(#Type "HandleOp")                             \
-      .Attr("container: string = ''")                       \
-      .Attr("shared_name: string = ''")                     \
-      .Output("resource: resource")                         \
-      .SetIsStateful()                                      \
-      .SetShapeFn(tensorflow::shape_inference::ScalarShape) \
-      .Doc("Creates a handle to a " #Type)
+#define REGISTER_RESOURCE_HANDLE_OP(Type) \
+  REGISTER_OP(#Type "HandleOp")           \
+      .Attr("container: string = ''")     \
+      .Attr("shared_name: string = ''")   \
+      .Output("resource: resource")       \
+      .SetIsStateful()                    \
+      .SetShapeFn(tensorflow::shape_inference::ScalarShape)
 
 // Utility op kernel to produce a handle to a resource of type T.
 template <typename T>
@@ -492,9 +490,16 @@ template <typename T>
 void IsResourceInitialized<T>::Compute(OpKernelContext* ctx) {
   Tensor* output;
   OP_REQUIRES_OK(ctx, ctx->allocate_output(0, {}, &output));
-  T* unused;
-  output->flat<bool>()(0) =
-      LookupResource(ctx, HandleFromInput(ctx, 0), &unused).ok();
+  T* object;
+  bool found;
+  if (LookupResource(ctx, HandleFromInput(ctx, 0), &object).ok()) {
+    found = true;
+    object->Unref();
+  } else {
+    found = false;
+  }
+
+  output->flat<bool>()(0) = found;
 }
 
 template <typename T>

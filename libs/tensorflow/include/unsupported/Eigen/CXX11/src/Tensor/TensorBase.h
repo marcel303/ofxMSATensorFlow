@@ -671,6 +671,18 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorReductionOp<Reducer, const Dims, const Derived>(derived(), dims, reducer);
     }
 
+    template <typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorTraceOp<const Dims, const Derived>
+    trace(const Dims& dims) const {
+      return TensorTraceOp<const Dims, const Derived>(derived(), dims);
+    }
+
+    const TensorTraceOp<const DimensionList<Index, NumDimensions>, const Derived>
+    trace() const {
+      DimensionList<Index, NumDimensions> in_dims;
+      return TensorTraceOp<const DimensionList<Index, NumDimensions>, const Derived>(derived(), in_dims);
+    }
+
     template <typename Broadcast> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorBroadcastingOp<const Broadcast, const Derived>
     broadcast(const Broadcast& broadcast) const {
@@ -824,7 +836,8 @@ class TensorBase<Derived, ReadOnlyAccessors>
   protected:
     template <typename Scalar, int NumIndices, int Options, typename IndexType> friend class Tensor;
     template <typename Scalar, typename Dimensions, int Option, typename IndexTypes> friend class TensorFixedSize;
-    template <typename OtherDerived, int AccessLevel> friend class TensorBase;
+    // the Eigen:: prefix is required to workaround a compilation issue with nvcc 9.0
+    template <typename OtherDerived, int AccessLevel> friend class Eigen::TensorBase;
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Derived& derived() const { return *static_cast<const Derived*>(this); }
 };
@@ -840,7 +853,8 @@ class TensorBase : public TensorBase<Derived, ReadOnlyAccessors> {
 
     template <typename Scalar, int NumIndices, int Options, typename IndexType> friend class Tensor;
     template <typename Scalar, typename Dimensions, int Option, typename IndexTypes> friend class TensorFixedSize;
-    template <typename OtherDerived, int OtherAccessLevel> friend class TensorBase;
+    // the Eigen:: prefix is required to workaround a compilation issue with nvcc 9.0
+    template <typename OtherDerived, int OtherAccessLevel> friend class Eigen::TensorBase;
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Derived& setZero() {

@@ -47,7 +47,7 @@ class AsString {
     /// Only used if precision > -1.
     ///
     /// Defaults to -1
-    Attrs Precision(int64 x) {
+    TF_MUST_USE_RESULT Attrs Precision(int64 x) {
       Attrs ret = *this;
       ret.precision_ = x;
       return ret;
@@ -56,7 +56,7 @@ class AsString {
     /// Use scientific notation for floating point numbers.
     ///
     /// Defaults to false
-    Attrs Scientific(bool x) {
+    TF_MUST_USE_RESULT Attrs Scientific(bool x) {
       Attrs ret = *this;
       ret.scientific_ = x;
       return ret;
@@ -66,7 +66,7 @@ class AsString {
     /// floating point numbers.
     ///
     /// Defaults to false
-    Attrs Shortest(bool x) {
+    TF_MUST_USE_RESULT Attrs Shortest(bool x) {
       Attrs ret = *this;
       ret.shortest_ = x;
       return ret;
@@ -77,7 +77,7 @@ class AsString {
     /// Only used if width > -1.
     ///
     /// Defaults to -1
-    Attrs Width(int64 x) {
+    TF_MUST_USE_RESULT Attrs Width(int64 x) {
       Attrs ret = *this;
       ret.width_ = x;
       return ret;
@@ -87,7 +87,7 @@ class AsString {
     /// Another typical value is '0'.  String cannot be longer than 1 character.
     ///
     /// Defaults to ""
-    Attrs Fill(StringPiece x) {
+    TF_MUST_USE_RESULT Attrs Fill(StringPiece x) {
       Attrs ret = *this;
       ret.fill_ = x;
       return ret;
@@ -171,7 +171,7 @@ class EncodeBase64 {
     /// Bool whether padding is applied at the ends.
     ///
     /// Defaults to false
-    Attrs Pad(bool x) {
+    TF_MUST_USE_RESULT Attrs Pad(bool x) {
       Attrs ret = *this;
       ret.pad_ = x;
       return ret;
@@ -237,7 +237,7 @@ class ReduceJoin {
     /// If `True`, retain reduced dimensions with length `1`.
     ///
     /// Defaults to false
-    Attrs KeepDims(bool x) {
+    TF_MUST_USE_RESULT Attrs KeepDims(bool x) {
       Attrs ret = *this;
       ret.keep_dims_ = x;
       return ret;
@@ -246,7 +246,7 @@ class ReduceJoin {
     /// The separator to use when joining.
     ///
     /// Defaults to ""
-    Attrs Separator(StringPiece x) {
+    TF_MUST_USE_RESULT Attrs Separator(StringPiece x) {
       Attrs ret = *this;
       ret.separator_ = x;
       return ret;
@@ -274,6 +274,54 @@ class ReduceJoin {
   ::tensorflow::Output output;
 };
 
+/// Replaces the match of pattern in input with rewrite.
+///
+/// It follows the re2 syntax (https://github.com/google/re2/wiki/Syntax)
+///
+/// Arguments:
+/// * scope: A Scope object
+/// * input: The text to be processed.
+/// * pattern: The regular expression to match the input.
+/// * rewrite: The rewrite to be applied to the matched expresion.
+///
+/// Optional attributes (see `Attrs`):
+/// * replace_global: If True, the replacement is global, otherwise the replacement
+/// is done only on the first match.
+///
+/// Returns:
+/// * `Output`: The text after applying pattern and rewrite.
+class RegexReplace {
+ public:
+  /// Optional attribute setters for RegexReplace
+  struct Attrs {
+    /// If True, the replacement is global, otherwise the replacement
+    /// is done only on the first match.
+    ///
+    /// Defaults to true
+    TF_MUST_USE_RESULT Attrs ReplaceGlobal(bool x) {
+      Attrs ret = *this;
+      ret.replace_global_ = x;
+      return ret;
+    }
+
+    bool replace_global_ = true;
+  };
+  RegexReplace(const ::tensorflow::Scope& scope, ::tensorflow::Input input,
+             ::tensorflow::Input pattern, ::tensorflow::Input rewrite);
+  RegexReplace(const ::tensorflow::Scope& scope, ::tensorflow::Input input,
+             ::tensorflow::Input pattern, ::tensorflow::Input rewrite, const
+             RegexReplace::Attrs& attrs);
+  operator ::tensorflow::Output() const { return output; }
+  operator ::tensorflow::Input() const { return output; }
+  ::tensorflow::Node* node() const { return output.node(); }
+
+  static Attrs ReplaceGlobal(bool x) {
+    return Attrs().ReplaceGlobal(x);
+  }
+
+  ::tensorflow::Output output;
+};
+
 /// Joins the strings in the given list of string tensors into one tensor;
 ///
 /// with the given separator (default is an empty separator).
@@ -296,7 +344,7 @@ class StringJoin {
     /// string, an optional join separator.
     ///
     /// Defaults to ""
-    Attrs Separator(StringPiece x) {
+    TF_MUST_USE_RESULT Attrs Separator(StringPiece x) {
       Attrs ret = *this;
       ret.separator_ = x;
       return ret;
@@ -346,6 +394,9 @@ class StringJoin {
 /// * input: 1-D. Strings to split.
 /// * delimiter: 0-D. Delimiter characters (bytes), or empty string.
 ///
+/// Optional attributes (see `Attrs`):
+/// * skip_empty: A `bool`. If `True`, skip the empty strings from the result.
+///
 /// Returns:
 /// * `Output` indices: A dense matrix of int64 representing the indices of the sparse tensor.
 /// * `Output` values: A vector of strings corresponding to the splited values.
@@ -354,8 +405,27 @@ class StringJoin {
 /// of tokens in a single input entry.
 class StringSplit {
  public:
+  /// Optional attribute setters for StringSplit
+  struct Attrs {
+    /// A `bool`. If `True`, skip the empty strings from the result.
+    ///
+    /// Defaults to true
+    TF_MUST_USE_RESULT Attrs SkipEmpty(bool x) {
+      Attrs ret = *this;
+      ret.skip_empty_ = x;
+      return ret;
+    }
+
+    bool skip_empty_ = true;
+  };
   StringSplit(const ::tensorflow::Scope& scope, ::tensorflow::Input input,
             ::tensorflow::Input delimiter);
+  StringSplit(const ::tensorflow::Scope& scope, ::tensorflow::Input input,
+            ::tensorflow::Input delimiter, const StringSplit::Attrs& attrs);
+
+  static Attrs SkipEmpty(bool x) {
+    return Attrs().SkipEmpty(x);
+  }
 
   ::tensorflow::Output indices;
   ::tensorflow::Output values;
@@ -522,7 +592,7 @@ class StringToHashBucketStrong {
 /// position = [1, 5, 7]
 /// length =   [3, 2, 1]
 ///
-/// output = [b'hir', b'ee', b'n"]
+/// output = [b'hir', b'ee', b'n']
 /// ```
 ///
 /// Arguments:

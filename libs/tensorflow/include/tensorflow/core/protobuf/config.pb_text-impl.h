@@ -47,6 +47,20 @@ namespace internal {
 
 void AppendProtoDebugString(
     ::tensorflow::strings::ProtoTextOutput* o,
+    const ::tensorflow::GPUOptions_Experimental_VirtualDevices& msg);
+bool ProtoParseFromScanner(
+    ::tensorflow::strings::Scanner* scanner, bool nested, bool close_curly,
+    ::tensorflow::GPUOptions_Experimental_VirtualDevices* msg);
+
+void AppendProtoDebugString(
+    ::tensorflow::strings::ProtoTextOutput* o,
+    const ::tensorflow::GPUOptions_Experimental& msg);
+bool ProtoParseFromScanner(
+    ::tensorflow::strings::Scanner* scanner, bool nested, bool close_curly,
+    ::tensorflow::GPUOptions_Experimental* msg);
+
+void AppendProtoDebugString(
+    ::tensorflow::strings::ProtoTextOutput* o,
     const ::tensorflow::GPUOptions& msg);
 bool ProtoParseFromScanner(
     ::tensorflow::strings::Scanner* scanner, bool nested, bool close_curly,
@@ -100,6 +114,20 @@ void AppendProtoDebugString(
 bool ProtoParseFromScanner(
     ::tensorflow::strings::Scanner* scanner, bool nested, bool close_curly,
     ::tensorflow::RunMetadata* msg);
+
+void AppendProtoDebugString(
+    ::tensorflow::strings::ProtoTextOutput* o,
+    const ::tensorflow::TensorConnection& msg);
+bool ProtoParseFromScanner(
+    ::tensorflow::strings::Scanner* scanner, bool nested, bool close_curly,
+    ::tensorflow::TensorConnection* msg);
+
+void AppendProtoDebugString(
+    ::tensorflow::strings::ProtoTextOutput* o,
+    const ::tensorflow::CallableOptions& msg);
+bool ProtoParseFromScanner(
+    ::tensorflow::strings::Scanner* scanner, bool nested, bool close_curly,
+    ::tensorflow::CallableOptions* msg);
 
 }  // namespace internal
 
